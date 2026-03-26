@@ -1,9 +1,22 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Vehicles from './assets/components/Vehicles';
 import AddVehicle from './assets/components/AddVehicle';
+import Stats from './assets/components/Stats';
+import axios from 'axios';
 
 function App() {
   const [refresh, setRefresh] = useState(false);
+  const [vehicles, setVehicles]=useState([]);
+
+  useEffect(()=>{
+    axios.get("http://127.0.0.1:8000/api/vehicles")
+    .then(res=>setVehicles(res.data))
+    .catch(err=>console.log(err));
+  },[refresh]);
+
+  const total = vehicles.length;
+  const active = vehicles.filter(v=>v.status === "active").length;
+  const maintenance = vehicles.filter(v=>v.status === "maintenance").length
 
   const handleRefresh = () => {
     setRefresh(!refresh); 
@@ -25,12 +38,15 @@ function App() {
           <div className="mt-4 h-1 w-32 bg-blue-500 mx-auto rounded-full"></div>
         </div>
 
+        <section>
+          <Stats total={total} active={active} maintenance={maintenance} />
+        </section>
         <section className="mb-10">
           <AddVehicle onVehicleAdded={handleRefresh} />
         </section>
 
         <section>
-          <Vehicles key={refresh} />
+          <Vehicles key={refresh} vehicles={vehicles} onRefresh={handleRefresh}/>
         </section>
 
       </div>
