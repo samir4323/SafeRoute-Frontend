@@ -18,6 +18,15 @@ function Vehicles({ vehicles, onRefresh }) {
         }
     };
 
+    const handleToggle = async (id) => {
+    try {
+        await axios.put(`http://127.0.0.1:8000/api/vehicles/${id}/toggle`);
+        onRefresh();
+    } catch (error) {
+        console.error("Error toggling status:", error);
+    }
+};
+
     return (
         <div className="mt-8 bg-white shadow-md rounded-lg overflow-hidden border border-gray-200">
             <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
@@ -53,6 +62,16 @@ function Vehicles({ vehicles, onRefresh }) {
                                         className="text-red-600 hover:text-red-900 bg-red-50 hover:bg-red-100 px-3 py-1 rounded-md transition-all active:scale-90"
                                     >
                                         Delete 🗑️
+                                    </button>
+                                    <button 
+                                    onClick={() => handleToggle(v.id)}
+                                     className={`px-3 py-1 rounded-lg text-xs font-medium transition-all mr-2 ${
+                                       v.status === 'active' 
+                                       ? 'bg-orange-100 text-orange-600 hover:bg-orange-200' 
+                                       : 'bg-green-100 text-green-600 hover:bg-green-200'
+                                     }`}
+                                    >
+                                     {v.status === 'active' ? '🔧 Set Maint.' : '✅ Set Active'}
                                     </button>
                                 </td>
                             </tr>

@@ -7,12 +7,19 @@ import axios from 'axios';
 function App() {
   const [refresh, setRefresh] = useState(false);
   const [vehicles, setVehicles]=useState([]);
+  const [search, setSearch] = useState("");
 
   useEffect(()=>{
     axios.get("http://127.0.0.1:8000/api/vehicles")
     .then(res=>setVehicles(res.data))
     .catch(err=>console.log(err));
   },[refresh]);
+
+  const filteredVehicles = vehicles.filter(v => 
+    v.plate_number.toLowerCase().includes(search.toLowerCase()) || 
+    v.model.toLowerCase().includes(search.toLowerCase())
+);
+
 
   const total = vehicles.length;
   const active = vehicles.filter(v=>v.status === "active").length;
@@ -44,9 +51,22 @@ function App() {
         <section className="mb-10">
           <AddVehicle onVehicleAdded={handleRefresh} />
         </section>
-
+        <div className="mb-6">
+        <div className="relative max-w-md mx-auto">
+            <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
+                🔍
+            </span>
+            <input 
+                type="text"
+                placeholder="Search by Plate or Model..."
+                className="block w-full pl-10 pr-3 py-3 border border-gray-200 rounded-2xl leading-5 bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+            />
+        </div>
+      </div>
         <section>
-          <Vehicles key={refresh} vehicles={vehicles} onRefresh={handleRefresh}/>
+          <Vehicles vehicles={filteredVehicles} onRefresh={handleRefresh} key={refresh}/>
         </section>
 
       </div>
