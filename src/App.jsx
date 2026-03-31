@@ -59,7 +59,7 @@ function App() {
             <NavLink to="/" className={({ isActive }) => `flex items-center gap-3 p-3 rounded-xl font-medium transition-all ${isActive ? 'bg-blue-600 text-white shadow-md' : 'text-gray-500 hover:bg-blue-50 hover:text-blue-600'}`}>
               📊 Fleet Dashboard
             </NavLink>
-            <NavLink to="/trips" className={({ isActive }) => `flex items-center gap-3 p-3 rounded-xl font-medium transition-all ${isActive ? 'bg-blue-600 text-white shadow-md' : 'text-gray-500 hover:bg-blue-50 hover:text-blue-600'}`}>
+            <NavLink to="/trips"  className={({ isActive }) => `flex items-center gap-3 p-3 rounded-xl font-medium transition-all ${isActive ? 'bg-blue-600 text-white shadow-md' : 'text-gray-500 hover:bg-blue-50 hover:text-blue-600'}`}>
               🛣️ Trip Management
             </NavLink>
             <NavLink to="/drivers" className={({ isActive }) => `flex items-center gap-3 p-3 rounded-xl font-medium transition-all ${isActive ? 'bg-blue-600 text-white shadow-md' : 'text-gray-500 hover:bg-blue-50 hover:text-blue-600'}`}>
@@ -71,8 +71,8 @@ function App() {
         <main className="flex-1 ml-64 p-8">
           <Routes>
             <Route path="/" element={<Dashboard />} />
-            <Route path="/trips" element={<Trips />} />
             <Route path="/drivers" element={<Drivers/>}/>
+            <Route path="/trips" element={<Trips onRefresh={handleRefresh} />} />
           </Routes>
         </main>
 

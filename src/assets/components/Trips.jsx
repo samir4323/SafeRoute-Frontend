@@ -1,15 +1,13 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
 
-const Trips = () => {
+const Trips = ({onRefresh}) => {
     const [trips, setTrips] = useState([]);
     const [showModal, setShowModal] = useState(false);
     
-    // هادو باش نعمرو الـ Select options
     const [vehicles, setVehicles] = useState([]);
     const [drivers, setDrivers] = useState([]);
 
-    // الداتا ديال الـ Form
     const [formData, setFormData] = useState({
         driver_id: "",
         vehicle_id: "",
@@ -26,7 +24,6 @@ const Trips = () => {
         }
     };
 
-    // كنجيبو غير الشوافر و الشاحنات اللي متاحين (Active / Available)
     const fetchResources = async () => {
         try {
             const vRes = await axios.get('http://127.0.0.1:8000/api/vehicles');
@@ -47,18 +44,39 @@ const Trips = () => {
         e.preventDefault();
         try {
             await axios.post('http://127.0.0.1:8000/api/trips', formData);
-            setShowModal(false); // سد النافذة
-            fetchTrips(); // تحديث الجدول
-            fetchResources(); // تحديث القائمة (باش الشيفور اللي مشى ما يبقاش يبان)
+            onRefresh();
+            setShowModal(false);
+            fetchTrips(); 
+            fetchResources(); 
             alert("Trip Started! 🚛💨");
         } catch (err) {
             alert("Error: Check if all fields are filled!");
         }
     };
+const [showFinishModal, setShowFinishModal] = useState(false);
+const [selectedTrip, setSelectedTrip] = useState(null);
+const [finishData, setFinishData] = useState({
+    distance: "",
+    fuel_consumed: ""
+});
+
+const handleFinishTrip = async (e) => {
+    e.preventDefault();
+    try {
+        await axios.put(`http://127.0.0.1:8000/api/trips/${selectedTrip.id}/complete`, finishData);
+        onRefresh();
+        setShowFinishModal(false);
+        fetchTrips();
+        fetchResources(); 
+        alert("Trip Completed! Resource Released 🟢");
+    } catch (err) {
+        alert("Error completing trip!");
+    }
+};
 
     return (
         <div className="space-y-6">
-            {/* Header مع Button ديال الزيادة */}
+ 
             <div className="flex justify-between items-center bg-white p-6 rounded-xl shadow-sm border border-slate-100">
                 <div>
                     <h2 className="text-xl font-bold text-slate-800">🛣️ Trip Management</h2>
@@ -72,7 +90,6 @@ const Trips = () => {
                 </button>
             </div>
 
-            {/* الجدول */}
             <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse">
@@ -83,6 +100,7 @@ const Trips = () => {
                                 <th className="py-4 px-6">Truck</th>
                                 <th className="py-4 px-6">Distance</th>
                                 <th className="py-4 px-6">Status</th>
+                                <th className="py-4 px-6 text-right">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="text-slate-600 text-sm">
@@ -114,6 +132,16 @@ const Trips = () => {
                                             {trip.status?.replace('_', ' ')}
                                         </span>
                                     </td>
+                                    <td className="py-4 px-6 text-right">
+                                        {trip.status === 'in_progress' && (
+                                        <button 
+                                            onClick={() => { setSelectedTrip(trip); setShowFinishModal(true); }}
+                                             className="text-xs bg-green-500 text-white px-3 py-1.5 rounded-lg font-bold hover:bg-green-600 transition-all shadow-sm shadow-green-100"
+                                         >
+                                          🏁 Finish
+                                        </button>
+                                     )}
+                                    </td>
                                 </tr>
                             ))}
                         </tbody>
@@ -121,7 +149,6 @@ const Trips = () => {
                 </div>
             </div>
 
-            {/* --- الـ Modal Form --- */}
             {showModal && (
                 <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
                     <div className="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl animate-in fade-in zoom-in duration-200">
@@ -197,7 +224,39 @@ const Trips = () => {
                         </form>
                     </div>
                 </div>
+                
             )}
+            {showFinishModal && (
+    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div className="bg-white rounded-2xl p-8 max-w-sm w-full shadow-2xl">
+            <h3 className="text-xl font-bold mb-2 text-slate-800">Complete Trip</h3>
+            <p className="text-sm text-slate-500 mb-6">Enter final trip data to release driver and vehicle.</p>
+            
+            <form onSubmit={handleFinishTrip} className="space-y-4">
+                <div>
+                    <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Actual Distance (KM)</label>
+                    <input 
+                        type="number" step="0.01" required
+                        className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl"
+                        onChange={(e) => setFinishData({...finishData, distance: e.target.value})}
+                    />
+                </div>
+                <div>
+                    <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Fuel Consumed (Liters)</label>
+                    <input 
+                        type="number" step="0.01" required
+                        className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl"
+                        onChange={(e) => setFinishData({...finishData, fuel_consumed: e.target.value})}
+                    />
+                </div>
+                <div className="flex gap-3 pt-4">
+                    <button type="button" onClick={() => setShowFinishModal(false)} className="flex-1 py-3 font-bold text-slate-500">Cancel</button>
+                    <button type="submit" className="flex-1 py-3 bg-green-600 text-white font-bold rounded-xl shadow-lg shadow-green-100">Submit 🏁</button>
+                </div>
+            </form>
+        </div>
+    </div>
+)}          
         </div>
     );
 }
